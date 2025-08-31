@@ -17,6 +17,8 @@ public class ClientRenderHandler {
 
     @SubscribeEvent
     public void onRenderOverlay(RenderGameOverlayEvent.Text event) {
+        if (!ClientCache.isOverlayEnabled) return; // Obey the toggle
+
         ClientCache.clearStaleData();
 
         // Render Game of Light sequence on the HUD.
@@ -24,8 +26,7 @@ public class ClientRenderHandler {
             StringBuilder sequenceText = new StringBuilder("§eGoL Sequence: §f");
             for (int index : ClientCache.golSequence) {
                 if (index >= 0 && index < Symbol.values().length) {
-                    sequenceText.append(Symbol.values()[index].name())
-                        .append(" ");
+                    sequenceText.append(Symbol.values()[index].name()).append(" ");
                 }
             }
             mc.fontRenderer.drawStringWithShadow(sequenceText.toString(), 5, 5, 0xFFFFFF);
@@ -34,16 +35,15 @@ public class ClientRenderHandler {
 
     @SubscribeEvent
     public void onRenderWorldLast(RenderWorldLastEvent event) {
+        if (!ClientCache.isOverlayEnabled) return; // Obey the toggle
+
         ClientCache.clearStaleData();
 
         // Render Minesweeper bomb locations in the world.
         if (ClientCache.msBoard != null) {
-            double playerX = mc.thePlayer.lastTickPosX
-                + (mc.thePlayer.posX - mc.thePlayer.lastTickPosX) * event.partialTicks;
-            double playerY = mc.thePlayer.lastTickPosY
-                + (mc.thePlayer.posY - mc.thePlayer.lastTickPosY) * event.partialTicks;
-            double playerZ = mc.thePlayer.lastTickPosZ
-                + (mc.thePlayer.posZ - mc.thePlayer.lastTickPosZ) * event.partialTicks;
+            double playerX = mc.thePlayer.lastTickPosX + (mc.thePlayer.posX - mc.thePlayer.lastTickPosX) * event.partialTicks;
+            double playerY = mc.thePlayer.lastTickPosY + (mc.thePlayer.posY - mc.thePlayer.lastTickPosY) * event.partialTicks;
+            double playerZ = mc.thePlayer.lastTickPosZ + (mc.thePlayer.posZ - mc.thePlayer.lastTickPosZ) * event.partialTicks;
 
             GL11.glPushMatrix();
             GL11.glTranslated(-playerX, -playerY, -playerZ);
@@ -52,7 +52,6 @@ public class ClientRenderHandler {
             GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
             GL11.glDisable(GL11.GL_DEPTH_TEST);
 
-            // This is the fix: Calculate the true origin of the board by accounting for the centering offset.
             int offset = ClientCache.msAllocatedSize - ClientCache.msSize;
             double originX = ClientCache.msX + 1 + (offset / 2.0);
             double originY = ClientCache.msY;
@@ -65,10 +64,9 @@ public class ClientRenderHandler {
                         double blockY = originY;
                         double blockZ = originZ + y;
 
-                        AxisAlignedBB aabb = AxisAlignedBB
-                            .getBoundingBox(blockX, blockY, blockZ, blockX + 1, blockY + 1, blockZ + 1)
-                            .expand(0.002, 0.002, 0.002);
-                        drawFilledBoundingBox(aabb, 1.0F, 0.0F, 0.0F, 0.35F);
+                        // Use a bounding box that is only on the top surface of the block
+                        AxisAlignedBB aabb = AxisAlignedBB.getBoundingBox(blockX, blockY + 1, blockZ, blockX + 1, blockY + 1.002, blockZ + 1);
+                        drawFilledTopFace(aabb, 1.0F, 0.0F, 0.0F, 0.45F);
                     }
                 }
             }
@@ -80,41 +78,18 @@ public class ClientRenderHandler {
         }
     }
 
-    private void drawFilledBoundingBox(AxisAlignedBB box, float r, float g, float b, float a) {
+    /**
+     * Draws a single, filled, flat quad on the top surface of a bounding box.
+     */
+    private void drawFilledTopFace(AxisAlignedBB box, float r, float g, float b, float a) {
         Tessellator tessellator = Tessellator.instance;
         tessellator.startDrawingQuads();
         tessellator.setColorRGBA_F(r, g, b, a);
-
-        tessellator.addVertex(box.minX, box.minY, box.minZ);
-        tessellator.addVertex(box.maxX, box.minY, box.minZ);
-        tessellator.addVertex(box.maxX, box.minY, box.maxZ);
-        tessellator.addVertex(box.minX, box.minY, box.maxZ);
-
         tessellator.addVertex(box.minX, box.maxY, box.minZ);
         tessellator.addVertex(box.minX, box.maxY, box.maxZ);
         tessellator.addVertex(box.maxX, box.maxY, box.maxZ);
         tessellator.addVertex(box.maxX, box.maxY, box.minZ);
-
-        tessellator.addVertex(box.minX, box.minY, box.minZ);
-        tessellator.addVertex(box.minX, box.maxY, box.minZ);
-        tessellator.addVertex(box.maxX, box.maxY, box.minZ);
-        tessellator.addVertex(box.maxX, box.minY, box.minZ);
-
-        tessellator.addVertex(box.minX, box.minY, box.maxZ);
-        tessellator.addVertex(box.maxX, box.minY, box.maxZ);
-        tessellator.addVertex(box.maxX, box.maxY, box.maxZ);
-        tessellator.addVertex(box.minX, box.maxY, box.maxZ);
-
-        tessellator.addVertex(box.minX, box.minY, box.minZ);
-        tessellator.addVertex(box.minX, box.minY, box.maxZ);
-        tessellator.addVertex(box.minX, box.maxY, box.maxZ);
-        tessellator.addVertex(box.minX, box.maxY, box.minZ);
-
-        tessellator.addVertex(box.maxX, box.minY, box.minZ);
-        tessellator.addVertex(box.maxX, box.maxY, box.minZ);
-        tessellator.addVertex(box.maxX, box.maxY, box.maxZ);
-        tessellator.addVertex(box.maxX, box.minY, box.maxZ);
-
         tessellator.draw();
     }
 }
+

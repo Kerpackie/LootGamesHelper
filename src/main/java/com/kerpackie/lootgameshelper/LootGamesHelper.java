@@ -1,13 +1,15 @@
 package com.kerpackie.lootgameshelper;
 
 import net.minecraftforge.common.MinecraftForge;
-
+import net.minecraftforge.client.ClientCommandHandler;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.kerpackie.lootgameshelper.commands.CommandGetData;
 import com.kerpackie.lootgameshelper.commands.CommandScan;
+import com.kerpackie.lootgameshelper.commands.CommandToggle;
 
+import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.Mod.EventHandler;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
@@ -21,7 +23,7 @@ import cpw.mods.fml.relauncher.Side;
 public class LootGamesHelper {
 
     public static final String MODID = "lootgameshelper";
-    public static final String VERSION = "1.4";
+    public static final String VERSION = "1.0";
     public static final String NAME = "LootGames Helper";
 
     public static SimpleNetworkWrapper network;
@@ -32,7 +34,6 @@ public class LootGamesHelper {
         logger.info("Starting LootGames Helper Pre-Initialization...");
         network = NetworkRegistry.INSTANCE.newSimpleChannel(MODID);
 
-        // Register packets to send data from our server command to the client
         network.registerMessage(PacketGoLData.Handler.class, PacketGoLData.class, 0, Side.CLIENT);
         network.registerMessage(PacketMSData.Handler.class, PacketMSData.class, 1, Side.CLIENT);
         logger.info("Network and Packets Registered.");
@@ -44,15 +45,16 @@ public class LootGamesHelper {
 
         if (event.getSide() == Side.CLIENT) {
             MinecraftForge.EVENT_BUS.register(new ClientRenderHandler());
-            logger.info("Client Render Handler Registered.");
+            ClientCommandHandler.instance.registerCommand(new CommandToggle());
         }
+        logger.info("Event Handlers Registered.");
     }
 
     @EventHandler
     public void serverStarting(FMLServerStartingEvent event) {
-        // Register our server-side command
+        logger.info("Registering server commands...");
         event.registerServerCommand(new CommandGetData());
         event.registerServerCommand(new CommandScan());
-        logger.info("Server Command Registered.");
     }
 }
+

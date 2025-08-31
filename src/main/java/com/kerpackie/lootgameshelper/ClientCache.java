@@ -6,6 +6,9 @@ public class ClientCache {
 
     private static final double MAX_DISTANCE = 32.0;
 
+    // --- Global Overlay Toggle ---
+    public static boolean isOverlayEnabled = true;
+
     // --- Game of Light Data ---
     public static int[] golSequence = null;
     public static int golX, golY, golZ;
@@ -30,9 +33,6 @@ public class ClientCache {
         msAllocatedSize = allocatedSize;
     }
 
-    /**
-     * Clears cached data if the player is too far away.
-     */
     public static void clearStaleData() {
         Minecraft mc = Minecraft.getMinecraft();
         if (mc.thePlayer == null) return;
@@ -49,3 +49,4 @@ public class ClientCache {
         }
     }
 }
+
