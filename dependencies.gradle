@@ -34,9 +34,8 @@
  * For more details, see https://docs.gradle.org/8.0.1/userguide/java_library_plugin.html#sec:java_library_configurations_graph
  */
 dependencies {
-    // This is the standard way to depend on another mod within the GTNH ecosystem.
-    // 'devOnlyNonPublishable' tells Gradle this is a dependency needed for development and testing,
-    // but it should not be bundled with your mod or listed as a required dependency for others.
-    // The build system automatically handles downloading and deobfuscating the mod from the GTNH Maven repository.
-    devOnlyNonPublishable('com.github.GTNewHorizons:LootGames:2.2.0-GTNH:dev')
+    // Since LootGames is not available on the public GTNH Maven repository,
+    // we must include the JAR file in our repository and reference it locally.
+    // This ensures that the CI server can find it during the build process.
+    devOnlyNonPublishable(rfg.deobf(project.files("libs/LootGames-2.2.0.jar")))
 }
