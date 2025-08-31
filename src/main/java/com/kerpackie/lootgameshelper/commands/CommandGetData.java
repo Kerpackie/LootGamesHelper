@@ -15,6 +15,7 @@ import com.kerpackie.lootgameshelper.PacketGoLData;
 import com.kerpackie.lootgameshelper.PacketMSData;
 
 import ru.timeconqueror.lootgames.api.minigame.LootGame;
+import ru.timeconqueror.lootgames.common.config.ConfigMS;
 import ru.timeconqueror.lootgames.minigame.gol.Symbol;
 import ru.timeconqueror.lootgames.minigame.minesweeper.MSBoard;
 
@@ -29,6 +30,7 @@ public class CommandGetData extends CommandBase {
     private Field msBoardArrayField;
     private Field msFieldTypeField;
     private Field msBoardSizeField;
+    private Field msConfigSnapshotField;
 
     @Override
     public String getCommandName() {
@@ -93,9 +95,6 @@ public class CommandGetData extends CommandBase {
         }
     }
 
-    /**
-     * A robust reflection helper that searches for a field in a class and all its superclasses.
-     */
     private Field findField(Class<?> clazz, String fieldName) throws NoSuchFieldException {
         Class<?> current = clazz;
         while (current != null) {
@@ -121,8 +120,6 @@ public class CommandGetData extends CommandBase {
             if (gameInstance == null) return;
 
             if (golStageField == null) {
-                // This is the fix: We must get the field from the LootGame class specifically
-                // to avoid the shadowed 'stage' field from the BoardLootGame class.
                 golStageField = LootGame.class.getDeclaredField("stage");
                 golStageField.setAccessible(true);
             }
@@ -133,7 +130,6 @@ public class CommandGetData extends CommandBase {
                     .getSimpleName();
                 LootGamesHelper.logger.info("Found Game of Light in stage: " + stageName);
 
-                // We can get the sequence from either the showing stage or the waiting stage.
                 if (stageName.equals("StageWaitingForSequence") || stageName.equals("StageShowSequence")) {
                     if (golSequenceField == null) {
                         golSequenceField = findField(stage.getClass(), "sequence");
@@ -203,6 +199,14 @@ public class CommandGetData extends CommandBase {
             }
             int boardSize = (int) msBoardSizeField.get(boardObject);
 
+            // Get allocated size for centering calculations
+            if (msConfigSnapshotField == null) {
+                msConfigSnapshotField = findField(gameInstance.getClass(), "configSnapshot");
+            }
+            ConfigMS.Snapshot configSnapshot = (ConfigMS.Snapshot) msConfigSnapshotField.get(gameInstance);
+            int allocatedSize = configSnapshot.getStage4()
+                .getBoardSize();
+
             if (msBoardArrayField == null) {
                 msBoardArrayField = MSBoard.class.getDeclaredField("board");
                 msBoardArrayField.setAccessible(true);
@@ -226,7 +230,13 @@ public class CommandGetData extends CommandBase {
             }
 
             LootGamesHelper.network.sendTo(
-                new PacketMSData(boardData, masterTile.xCoord, masterTile.yCoord, masterTile.zCoord, boardSize),
+                new PacketMSData(
+                    boardData,
+                    masterTile.xCoord,
+                    masterTile.yCoord,
+                    masterTile.zCoord,
+                    boardSize,
+                    allocatedSize),
                 player);
             player.addChatMessage(new ChatComponentText(EnumChatFormatting.GREEN + "Minesweeper solution sent!"));
         } catch (Exception e) {

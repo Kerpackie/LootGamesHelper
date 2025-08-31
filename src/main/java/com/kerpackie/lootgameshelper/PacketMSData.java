@@ -8,16 +8,17 @@ import io.netty.buffer.ByteBuf;
 public class PacketMSData implements IMessage {
 
     public byte[][] boardData;
-    public int x, y, z, size;
+    public int x, y, z, size, allocatedSize;
 
     public PacketMSData() {} // Required default constructor
 
-    public PacketMSData(byte[][] boardData, int x, int y, int z, int size) {
+    public PacketMSData(byte[][] boardData, int x, int y, int z, int size, int allocatedSize) {
         this.boardData = boardData;
         this.x = x;
         this.y = y;
         this.z = z;
         this.size = size;
+        this.allocatedSize = allocatedSize;
     }
 
     @Override
@@ -26,6 +27,7 @@ public class PacketMSData implements IMessage {
         this.y = buf.readInt();
         this.z = buf.readInt();
         this.size = buf.readInt();
+        this.allocatedSize = buf.readInt();
         this.boardData = new byte[size][size];
         for (int i = 0; i < size; i++) {
             for (int j = 0; j < size; j++) {
@@ -40,6 +42,7 @@ public class PacketMSData implements IMessage {
         buf.writeInt(y);
         buf.writeInt(z);
         buf.writeInt(size);
+        buf.writeInt(allocatedSize);
         for (int i = 0; i < size; i++) {
             for (int j = 0; j < size; j++) {
                 buf.writeByte(this.boardData[i][j]);
@@ -52,7 +55,8 @@ public class PacketMSData implements IMessage {
         @Override
         public IMessage onMessage(PacketMSData message, MessageContext ctx) {
             // Update the client cache with the minesweeper board data.
-            ClientCache.updateMSData(message.boardData, message.x, message.y, message.z, message.size);
+            ClientCache
+                .updateMSData(message.boardData, message.x, message.y, message.z, message.size, message.allocatedSize);
             return null; // No reply packet
         }
     }

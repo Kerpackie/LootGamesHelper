@@ -52,15 +52,18 @@ public class ClientRenderHandler {
             GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
             GL11.glDisable(GL11.GL_DEPTH_TEST);
 
+            // This is the fix: Calculate the true origin of the board by accounting for the centering offset.
+            int offset = ClientCache.msAllocatedSize - ClientCache.msSize;
+            double originX = ClientCache.msX + 1 + (offset / 2.0);
+            double originY = ClientCache.msY;
+            double originZ = ClientCache.msZ + 1 + (offset / 2.0);
+
             for (int x = 0; x < ClientCache.msSize; x++) {
                 for (int y = 0; y < ClientCache.msSize; y++) {
-                    // This is the fix: The server sends the enum's ordinal, and the Bomb's ordinal is 9, not 0.
-                    // However, your debug output confirmed the value for a bomb is 0 in your case.
-                    // We will trust the debug output and check for 0.
-                    if (ClientCache.msBoard[x][y] == 0) { // FIXED: Check for 0 instead of Type.BOMB.getId()
-                        double blockX = ClientCache.msX + 1 + x;
-                        double blockY = ClientCache.msY;
-                        double blockZ = ClientCache.msZ + 1 + y;
+                    if (ClientCache.msBoard[x][y] == 0) { // Check for Bomb ID
+                        double blockX = originX + x;
+                        double blockY = originY;
+                        double blockZ = originZ + y;
 
                         AxisAlignedBB aabb = AxisAlignedBB
                             .getBoundingBox(blockX, blockY, blockZ, blockX + 1, blockY + 1, blockZ + 1)
