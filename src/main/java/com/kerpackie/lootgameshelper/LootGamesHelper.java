@@ -1,7 +1,8 @@
 package com.kerpackie.lootgameshelper;
 
-import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.client.ClientCommandHandler;
+import net.minecraftforge.common.MinecraftForge;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -9,7 +10,6 @@ import com.kerpackie.lootgameshelper.commands.CommandGetData;
 import com.kerpackie.lootgameshelper.commands.CommandScan;
 import com.kerpackie.lootgameshelper.commands.CommandToggle;
 
-import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.Mod.EventHandler;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
@@ -57,4 +57,3 @@ public class LootGamesHelper {
         event.registerServerCommand(new CommandScan());
     }
 }
-

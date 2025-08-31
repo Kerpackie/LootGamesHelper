@@ -12,6 +12,7 @@ public class ClientCache {
     // --- Game of Light Data ---
     public static int[] golSequence = null;
     public static int golX, golY, golZ;
+    public static int currentGoLStep = 0; // Tracks the player's progress
 
     // --- Minesweeper Data ---
     public static byte[][] msBoard = null;
@@ -22,6 +23,7 @@ public class ClientCache {
         golX = x;
         golY = y;
         golZ = z;
+        currentGoLStep = 0; // Reset progress when a new sequence is received
     }
 
     public static void updateMSData(byte[][] board, int x, int y, int z, int size, int allocatedSize) {
@@ -33,6 +35,16 @@ public class ClientCache {
         msAllocatedSize = allocatedSize;
     }
 
+    public static void advanceGoLStep() {
+        if (golSequence != null) {
+            currentGoLStep++;
+            // If we've completed the sequence, loop back to the start for the next round
+            if (currentGoLStep >= golSequence.length) {
+                currentGoLStep = 0;
+            }
+        }
+    }
+
     public static void clearStaleData() {
         Minecraft mc = Minecraft.getMinecraft();
         if (mc.thePlayer == null) return;
@@ -40,6 +52,7 @@ public class ClientCache {
         if (golSequence != null) {
             if (mc.thePlayer.getDistance(golX, golY, golZ) > MAX_DISTANCE) {
                 golSequence = null;
+                currentGoLStep = 0;
             }
         }
         if (msBoard != null) {
@@ -49,4 +62,3 @@ public class ClientCache {
         }
     }
 }
-

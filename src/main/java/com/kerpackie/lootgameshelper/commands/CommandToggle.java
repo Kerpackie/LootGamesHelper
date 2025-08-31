@@ -33,9 +33,8 @@ public class CommandToggle extends CommandBase {
     public void processCommand(ICommandSender sender, String[] args) {
         ClientCache.isOverlayEnabled = !ClientCache.isOverlayEnabled;
 
-        String status = ClientCache.isOverlayEnabled ?
-            EnumChatFormatting.GREEN + "ENABLED" :
-            EnumChatFormatting.RED + "DISABLED";
+        String status = ClientCache.isOverlayEnabled ? EnumChatFormatting.GREEN + "ENABLED"
+            : EnumChatFormatting.RED + "DISABLED";
 
         sender.addChatMessage(new ChatComponentText("LootGames Helper overlay is now " + status));
     }
