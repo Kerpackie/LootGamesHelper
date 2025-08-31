@@ -8,8 +8,10 @@ import org.apache.logging.log4j.Logger;
 
 import com.kerpackie.lootgameshelper.commands.CommandGetData;
 import com.kerpackie.lootgameshelper.commands.CommandScan;
+import com.kerpackie.lootgameshelper.commands.CommandSolveNearest;
 import com.kerpackie.lootgameshelper.commands.CommandToggle;
 
+import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.Mod.EventHandler;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
@@ -36,6 +38,9 @@ public class LootGamesHelper {
 
         network.registerMessage(PacketGoLData.Handler.class, PacketGoLData.class, 0, Side.CLIENT);
         network.registerMessage(PacketMSData.Handler.class, PacketMSData.class, 1, Side.CLIENT);
+        // Register the new packet for the keybind
+        network.registerMessage(PacketSolveNearest.Handler.class, PacketSolveNearest.class, 2, Side.SERVER);
+
         logger.info("Network and Packets Registered.");
     }
 
@@ -46,14 +51,20 @@ public class LootGamesHelper {
         if (event.getSide() == Side.CLIENT) {
             MinecraftForge.EVENT_BUS.register(new ClientRenderHandler());
             ClientCommandHandler.instance.registerCommand(new CommandToggle());
+            FMLCommonHandler.instance()
+                .bus()
+                .register(new KeyInputHandler());
+            Keybinds.register();
         }
         logger.info("Event Handlers Registered.");
     }
 
     @EventHandler
     public void serverStarting(FMLServerStartingEvent event) {
-        logger.info("Registering server commands...");
+        logger.info("Registering Server Commands...");
         event.registerServerCommand(new CommandGetData());
         event.registerServerCommand(new CommandScan());
+        event.registerServerCommand(new CommandSolveNearest());
+        logger.info("Server Commands Registered.");
     }
 }

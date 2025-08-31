@@ -111,7 +111,7 @@ public class CommandGetData extends CommandBase {
             "Field '" + fieldName + "' not found in class " + clazz.getName() + " or any of its superclasses.");
     }
 
-    private void handleGameOfLight(EntityPlayerMP player, TileEntity masterTile) {
+    public void handleGameOfLight(EntityPlayerMP player, TileEntity masterTile) {
         try {
             if (masterGameField == null) {
                 masterGameField = findField(masterTile.getClass(), "game");
@@ -168,7 +168,7 @@ public class CommandGetData extends CommandBase {
         }
     }
 
-    private void handleMinesweeper(EntityPlayerMP player, TileEntity masterTile) {
+    public void handleMinesweeper(EntityPlayerMP player, TileEntity masterTile) {
         try {
             if (masterGameField == null) {
                 masterGameField = findField(masterTile.getClass(), "game");
